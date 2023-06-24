@@ -1,17 +1,15 @@
-import Head from "next/head";
-import Image from "next/image";
-import { Inter } from "@next/font/google";
-import styles from "@/styles/Home.module.css";
-import { useState } from "react";
 import useSWR from "swr";
-
-const inter = Inter({ subsets: ["latin"] });
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json());
 
 export default function Home() {
   const { data, error, mutate } = useSWR("/api/volume", fetcher);
+  const { data: isMutedData, mutate: mutateIsMuted } = useSWR(
+    "/api/is_muted",
+    fetcher
+  );
   const volume = data?.message;
+  const isMuted = isMutedData?.status === "true";
   function handleUp() {
     fetch("/api/volume", {
       method: "POST",
@@ -42,6 +40,18 @@ export default function Home() {
           onClick={handleDown}
         >
           -
+        </button>
+        <button
+          className="block px-8 py-8 bg-gray-900 hover:bg-gray-600"
+          onClick={() => {
+            if (isMuted) {
+              fetch("/api/unmute").then((_) => mutateIsMuted());
+            } else {
+              fetch("/api/mute").then((_) => mutateIsMuted());
+            }
+          }}
+        >
+          {isMuted ? "Unmute" : "Mute"}
         </button>
       </div>
     </main>
